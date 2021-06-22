@@ -22,9 +22,43 @@ def take_screenshot_from_vidio():
 				
 	cap.release()
 	cv.destroyAllWindows()
+	
 def object_person_in_video():
-		data = pickle.loads(open("./SANA_encodings",'wb').read())
-		print(data)
+		
+		data = pickle.loads(open("SANA_encodings",'rb').read())
+		#print(data)
+		video_file = cv.VideoCapture("./vidos/1a.mp4")
+		while True:
+			ret, image = video_file.read()
+			loc = fr.face_locations(image)# координаты морды верх-права низ-лево
+			#loc = fr.face_locations(image, model = "cnn")# координаты морды верх-права низ-лево
+			encode = fr.face_encodings(image, loc)
+			
+			for face_enc, face_loc in zip(encode, loc):
+				result = fr.compare_faces(data['encoding'], face_enc)
+				match = None
+				
+				if True in result:
+					match = data['name']
+					#print(f'Sovpadenie na vidio -{match}- ')
+					left_top = (face_loc[3], face_loc[0])
+					right_bottom = (face_loc[1], face_loc[2])
+					colorR = [0,0,255]
+					cv.rectangle(image, left_top,right_bottom,colorR)
+					cv.putText(image, 'Sana maniak_fanatic', (face_loc[3]+10, face_loc[2]+40), cv.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,255), 2)
+				else:
+					print("tip ne opoznan")
+					left_top = (face_loc[3], face_loc[0])
+					right_bottom = (face_loc[1], face_loc[2])
+					color = [0,255,0]
+					cv.rectangle(image, left_top,right_bottom,color)
+					cv.putText(image, 'poc neopoznan', (face_loc[3], face_loc[2]+30), cv.FONT_HERSHEY_SIMPLEX, 0.4, (36,255,12), 2)
+				cv.imshow("nazvanie",image)	
+				k = cv.waitKey(1)
+				if k== ord("q"):
+					print("q press clossed app")
+					break
+			
 def train_nodel_by_img():
 	if not os.path.isdir('dataset'):
 		print("[ERROR] there is dir")
@@ -60,6 +94,7 @@ def train_nodel_by_img():
 	with open("SANA_encodings",'wb')as file:
 		file.write(pickle.dumps(data))
 		
+			
 	
 	#print('encoding TRUE')				
 	#print(known_encodings)				
